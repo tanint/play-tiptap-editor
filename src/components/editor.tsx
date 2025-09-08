@@ -1,37 +1,42 @@
-import { TextStyleKit } from "@tiptap/extension-text-style";
-import type { Content, Editor, JSONContent } from "@tiptap/react";
+import type { Editor, JSONContent } from "@tiptap/react";
 import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import { useEffect, useState } from "react";
+import { StarterKit } from "@tiptap/starter-kit";
+import { useState } from "react";
+import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group";
+import { Button } from "./ui/button";
 
-const extensions = [TextStyleKit, StarterKit];
+const extensions = [
+  StarterKit.configure({
+    code: false,
+    codeBlock: false,
+    blockquote: false,
+    italic: false,
+    link: false,
+    orderedList: false,
+    strike: false,
+    underline: false,
+    trailingNode: false,
+    bulletList: false,
+    listItem: false,
+    heading: {
+      levels: [3],
+      HTMLAttributes: {
+        class: "text-xs font-semibold",
+      },
+    },
+  }),
+];
 
 const MenuBar = ({ editor }: { editor: Editor }) => {
-  // Read the current editor's state, and re-render the component when it changes
   const editorState = useEditorState({
     editor,
     selector: (ctx) => {
       return {
         isBold: ctx.editor.isActive("bold") ?? false,
         canBold: ctx.editor.can().chain().toggleBold().run() ?? false,
-        // isItalic: ctx.editor.isActive("italic") ?? false,
-        // canItalic: ctx.editor.can().chain().toggleItalic().run() ?? false,
-        // isStrike: ctx.editor.isActive("strike") ?? false,
-        // canStrike: ctx.editor.can().chain().toggleStrike().run() ?? false,
-        // isCode: ctx.editor.isActive("code") ?? false,
-        // canCode: ctx.editor.can().chain().toggleCode().run() ?? false,
-        // canClearMarks: ctx.editor.can().chain().unsetAllMarks().run() ?? false,
         isParagraph: ctx.editor.isActive("paragraph") ?? false,
-        // isHeading1: ctx.editor.isActive("heading", { level: 1 }) ?? false,
-        // isHeading2: ctx.editor.isActive("heading", { level: 2 }) ?? false,
         isHeading3: ctx.editor.isActive("heading", { level: 3 }) ?? false,
-        // isHeading4: ctx.editor.isActive("heading", { level: 4 }) ?? false,
-        // isHeading5: ctx.editor.isActive("heading", { level: 5 }) ?? false,
-        // isHeading6: ctx.editor.isActive("heading", { level: 6 }) ?? false,
         isBulletList: ctx.editor.isActive("bulletList") ?? false,
-        // isOrderedList: ctx.editor.isActive("orderedList") ?? false,
-        // isCodeBlock: ctx.editor.isActive("codeBlock") ?? false,
-        // isBlockquote: ctx.editor.isActive("blockquote") ?? false,
         canUndo: ctx.editor.can().chain().undo().run() ?? false,
         canRedo: ctx.editor.can().chain().redo().run() ?? false,
       };
@@ -39,47 +44,46 @@ const MenuBar = ({ editor }: { editor: Editor }) => {
   });
 
   return (
-    <div className="control-group">
-      <div className="button-group">
-        <button
+    <div>
+      <div className="button-group inline-flex gap-2">
+        <Button
+          variant="outline"
           onClick={() =>
             editor.chain().focus().toggleHeading({ level: 3 }).run()
           }
           className={editorState.isHeading3 ? "is-active" : ""}
         >
           Heading
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="outline"
           onClick={() => editor.chain().focus().setParagraph().run()}
           className={editorState.isParagraph ? "is-active" : ""}
         >
           Paragraph
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="outline"
           onClick={() => editor.chain().focus().toggleBold().run()}
           disabled={!editorState.canBold}
           className={editorState.isBold ? "is-active" : ""}
         >
           Bold
-        </button>
-        <button
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={editorState.isBulletList ? "is-active" : ""}
-        >
-          Bullet list
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="outline"
           onClick={() => editor.chain().focus().undo().run()}
           disabled={!editorState.canUndo}
         >
           Undo
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="outline"
           onClick={() => editor.chain().focus().redo().run()}
           disabled={!editorState.canRedo}
         >
           Redo
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -87,23 +91,22 @@ const MenuBar = ({ editor }: { editor: Editor }) => {
 
 export const InvoiceFooterEditor = () => {
   const editor = useEditor({
-    shouldRerenderOnTransaction: true,
     extensions,
   });
 
   const [content, setContent] = useState<JSONContent>();
 
   return (
-    <div className="tiptap">
+    <div className="p-4 grid gap-4">
       <MenuBar editor={editor} />
       <EditorContent editor={editor} />
-      <button
+      <Button
         onClick={() => {
           setContent(editor.getJSON());
         }}
       >
         Save
-      </button>
+      </Button>
       {content && <Readonly content={content} />}
     </div>
   );
